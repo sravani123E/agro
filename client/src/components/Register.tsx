@@ -9,9 +9,10 @@ import {
   Box,
   Alert,
 } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Register: React.FC = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +24,7 @@ const Register: React.FC = () => {
     setError('');
     
     try {
-      await register(email, password);
+      await register(name, email, password);
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
@@ -43,6 +44,16 @@ const Register: React.FC = () => {
             </Alert>
           )}
           <form onSubmit={handleSubmit}>
+            <TextField
+              label="Name"
+              type="text"
+              fullWidth
+              margin="normal"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoComplete="name"
+            />
             <TextField
               label="Email"
               type="email"

@@ -33,15 +33,16 @@ const OrderTracking: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/orders/my-orders', {
+      const response = await fetch('http://localhost:5000/api/orders', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       const data = await response.json();
-      setOrders(data);
+      setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setOrders([]);
     }
   };
 
@@ -85,30 +86,38 @@ const OrderTracking: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order._id}>
-                <TableCell>{order._id}</TableCell>
-                <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={order.status}
-                    color={getStatusColor(order.status) as any}
-                  />
-                </TableCell>
-                <TableCell>${order.totalAmount}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setOpenDialog(true);
-                    }}
-                  >
-                    View Details
-                  </Button>
+            {orders && orders.length > 0 ? (
+              orders.map((order) => (
+                <TableRow key={order._id}>
+                  <TableCell>{order._id}</TableCell>
+                  <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={order.status}
+                      color={getStatusColor(order.status) as any}
+                    />
+                  </TableCell>
+                  <TableCell>${order.totalAmount}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setOpenDialog(true);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <Typography variant="body1">No orders found</Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>

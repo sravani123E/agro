@@ -24,7 +24,9 @@ app.use(compression());
 
 // Enhanced CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3003'],
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-frontend-url.vercel.app'] 
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3003'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -133,7 +135,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/products', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 50;
     const skip = (page - 1) * limit;
 
     const [products, total] = await Promise.all([
@@ -340,64 +342,64 @@ const initializeProducts = async () => {
     
     const sampleProducts = [
       {
-        name: 'Fresh Apples',
-        description: 'Crisp and juicy red apples, perfect for snacking or baking.',
+        name: 'Fresh Red Apples',
+        description: 'Sweet and crisp red apples from local orchards, perfect for snacking, baking, or making fresh apple juice.',
         price: 2.99,
-        image: 'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2',
+        image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6',
         category: 'fruit',
         stock: 100
       },
       {
         name: 'Organic Bananas',
-        description: 'Sweet and creamy organic bananas, rich in potassium.',
+        description: 'Perfectly ripened organic bananas, rich in potassium and natural sweetness.',
         price: 1.99,
-        image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e',
+        image: 'https://images.unsplash.com/photo-1543218024-57a70143c369',
         category: 'fruit',
         stock: 150
       },
       {
         name: 'Fresh Carrots',
-        description: 'Crunchy and sweet carrots, great for snacking or cooking.',
+        description: 'Locally grown organic carrots, sweet and crunchy. Perfect for salads and cooking.',
         price: 1.49,
-        image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37',
+        image: 'https://images.unsplash.com/photo-1447175008436-054170c2e979',
         category: 'vegetable',
         stock: 200
       },
       {
         name: 'Ripe Mangoes',
-        description: 'Sweet and juicy mangoes at peak ripeness.',
+        description: 'Sweet and juicy mangoes at peak ripeness. Perfect for smoothies and desserts.',
         price: 3.99,
-        image: 'https://images.unsplash.com/photo-1553279768-865429fa0078',
+        image: 'https://images.unsplash.com/photo-1591073113125-e46713c829ed',
         category: 'fruit',
         stock: 75
       },
       {
         name: 'Fresh Spinach',
-        description: 'Tender and nutritious spinach leaves.',
+        description: 'Tender and nutritious spinach leaves. Ideal for salads and cooking.',
         price: 2.49,
         image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb',
         category: 'vegetable',
         stock: 120
       },
       {
-        name: 'Sweet Oranges',
+        name: 'Navel Oranges',
         description: 'Juicy and sweet oranges, packed with vitamin C.',
         price: 3.49,
-        image: 'https://images.unsplash.com/photo-1547514701-42782101795e',
+        image: 'https://images.unsplash.com/photo-1611080626919-7cf5a9999276',
         category: 'fruit',
         stock: 90
       },
       {
-        name: 'Fresh Broccoli',
-        description: 'Crisp and nutritious broccoli florets.',
+        name: 'Broccoli Crown',
+        description: 'Fresh broccoli crowns with tight, green florets. Perfect for steaming.',
         price: 2.99,
-        image: 'https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c',
+        image: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc',
         category: 'vegetable',
         stock: 80
       },
       {
         name: 'Red Grapes',
-        description: 'Sweet and seedless red grapes.',
+        description: 'Sweet and seedless red grapes. Great for snacking.',
         price: 4.99,
         image: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f',
         category: 'fruit',
@@ -405,7 +407,7 @@ const initializeProducts = async () => {
       },
       {
         name: 'Bell Peppers',
-        description: 'Colorful and crisp bell peppers.',
+        description: 'Colorful mix of sweet bell peppers. Perfect for salads and cooking.',
         price: 1.99,
         image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83',
         category: 'vegetable',
@@ -413,7 +415,7 @@ const initializeProducts = async () => {
       },
       {
         name: 'Fresh Strawberries',
-        description: 'Sweet and juicy strawberries.',
+        description: 'Sweet and juicy strawberries. Perfect for desserts.',
         price: 4.49,
         image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6',
         category: 'fruit',
@@ -421,15 +423,15 @@ const initializeProducts = async () => {
       },
       {
         name: 'Cherry Tomatoes',
-        description: 'Sweet and bite-sized cherry tomatoes.',
+        description: 'Sweet and bite-sized cherry tomatoes. Great for salads.',
         price: 3.29,
-        image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337',
+        image: 'https://images.unsplash.com/photo-1561155707-3f9e6bb380b4',
         category: 'vegetable',
         stock: 95
       },
       {
         name: 'Fresh Blueberries',
-        description: 'Plump and sweet blueberries.',
+        description: 'Plump and sweet blueberries. Rich in antioxidants.',
         price: 5.99,
         image: 'https://images.unsplash.com/photo-1498557850523-fd3d118b962e',
         category: 'fruit',
@@ -437,31 +439,31 @@ const initializeProducts = async () => {
       },
       {
         name: 'Green Beans',
-        description: 'Crisp and tender green beans.',
+        description: 'Crisp and tender green beans. Perfect for stir-fries.',
         price: 2.79,
         image: 'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0',
         category: 'vegetable',
         stock: 130
       },
       {
-        name: 'Fresh Pineapple',
-        description: 'Sweet and tropical fresh pineapple.',
+        name: 'Golden Pineapple',
+        description: 'Sweet and tropical fresh pineapple. Great for fruit salads.',
         price: 4.99,
         image: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba',
         category: 'fruit',
         stock: 60
       },
       {
-        name: 'Cucumber',
-        description: 'Cool and crisp cucumbers.',
+        name: 'English Cucumber',
+        description: 'Cool and crisp cucumbers. Perfect for salads.',
         price: 1.79,
-        image: 'https://images.unsplash.com/photo-1604977042946-1eecc30f269e',
+        image: 'https://images.unsplash.com/photo-1449300079323-02847456d222',
         category: 'vegetable',
         stock: 140
       },
       {
-        name: 'Avocados',
-        description: 'Creamy and nutritious avocados.',
+        name: 'Ripe Avocados',
+        description: 'Creamy and nutritious avocados. Perfect for guacamole.',
         price: 2.99,
         image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578',
         category: 'fruit',
@@ -469,23 +471,23 @@ const initializeProducts = async () => {
       },
       {
         name: 'Sweet Potatoes',
-        description: 'Nutritious and versatile sweet potatoes.',
+        description: 'Nutritious and versatile sweet potatoes. Great for roasting.',
         price: 1.99,
         image: 'https://images.unsplash.com/photo-1596097557993-54e1dbe3149f',
         category: 'vegetable',
         stock: 120
       },
       {
-        name: 'Kiwi',
-        description: 'Tangy and sweet kiwi fruits.',
+        name: 'Fresh Kiwi',
+        description: 'Tangy and sweet kiwi fruits. Rich in vitamin C.',
         price: 3.49,
-        image: 'https://images.unsplash.com/photo-1585059895524-72359e06133a',
+        image: 'https://images.unsplash.com/photo-1610917040803-1fccf9623064',
         category: 'fruit',
         stock: 90
       },
       {
-        name: 'Asparagus',
-        description: 'Fresh and tender asparagus spears.',
+        name: 'Green Asparagus',
+        description: 'Fresh and tender asparagus spears. Perfect for grilling.',
         price: 4.99,
         image: 'https://images.unsplash.com/photo-1515471209610-dae1c92d8777',
         category: 'vegetable',
@@ -493,7 +495,7 @@ const initializeProducts = async () => {
       },
       {
         name: 'Dragon Fruit',
-        description: 'Exotic and beautiful dragon fruit.',
+        description: 'Exotic dragon fruit with vibrant pink flesh. Rich in antioxidants.',
         price: 6.99,
         image: 'https://images.unsplash.com/photo-1527325678964-54921661f888',
         category: 'fruit',
@@ -501,23 +503,23 @@ const initializeProducts = async () => {
       },
       {
         name: 'Brussels Sprouts',
-        description: 'Fresh and nutritious Brussels sprouts.',
+        description: 'Fresh and nutritious Brussels sprouts. Great for roasting.',
         price: 3.49,
         image: 'https://images.unsplash.com/photo-1438118907704-7718ee9a191a',
         category: 'vegetable',
         stock: 100
       },
       {
-        name: 'Pomegranate',
-        description: 'Sweet and juicy pomegranate.',
+        name: 'Fresh Pomegranate',
+        description: 'Sweet and juicy pomegranate. Full of healthy antioxidants.',
         price: 4.99,
         image: 'https://images.unsplash.com/photo-1541344999736-83eca272f6fc',
         category: 'fruit',
         stock: 70
       },
       {
-        name: 'Cauliflower',
-        description: 'Fresh and versatile cauliflower.',
+        name: 'White Cauliflower',
+        description: 'Fresh and versatile cauliflower. Perfect for roasting.',
         price: 2.99,
         image: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3',
         category: 'vegetable',
@@ -525,31 +527,31 @@ const initializeProducts = async () => {
       },
       {
         name: 'Passion Fruit',
-        description: 'Exotic and aromatic passion fruit.',
+        description: 'Exotic and aromatic passion fruit. Great for juices and desserts.',
         price: 5.99,
         image: 'https://images.unsplash.com/photo-1604495772376-9657f0035eb5',
         category: 'fruit',
         stock: 60
       },
       {
-        name: 'Artichokes',
-        description: 'Fresh and flavorful artichokes.',
+        name: 'Fresh Artichokes',
+        description: 'Fresh and flavorful artichokes. Perfect for steaming.',
         price: 3.99,
         image: 'https://images.unsplash.com/photo-1612258264055-11ab003d9459',
         category: 'vegetable',
         stock: 70
       },
       {
-        name: 'Lychee',
-        description: 'Sweet and fragrant lychee fruits.',
+        name: 'Fresh Lychee',
+        description: 'Sweet and fragrant lychee fruits. Perfect for desserts.',
         price: 7.99,
         image: 'https://images.unsplash.com/photo-1629721671030-a83edbb11211',
         category: 'fruit',
         stock: 45
       },
       {
-        name: 'Eggplant',
-        description: 'Fresh and glossy eggplants.',
+        name: 'Italian Eggplant',
+        description: 'Fresh and glossy eggplants. Great for grilling or baking.',
         price: 2.49,
         image: 'https://images.unsplash.com/photo-1605196560547-b2f7281b7e68',
         category: 'vegetable',
@@ -557,11 +559,35 @@ const initializeProducts = async () => {
       },
       {
         name: 'Fresh Figs',
-        description: 'Sweet and delicate fresh figs.',
+        description: 'Sweet and delicate fresh figs. Perfect for desserts.',
         price: 6.99,
         image: 'https://images.unsplash.com/photo-1601379760883-1bb497c558f0',
         category: 'fruit',
         stock: 55
+      },
+      {
+        name: 'Zucchini',
+        description: 'Fresh green zucchini. Perfect for grilling or pasta dishes.',
+        price: 1.99,
+        image: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f',
+        category: 'vegetable',
+        stock: 110
+      },
+      {
+        name: 'Fresh Raspberries',
+        description: 'Sweet and tender raspberries. Great for snacking or baking.',
+        price: 5.99,
+        image: 'https://images.unsplash.com/photo-1577069861033-55d04cec4ef5',
+        category: 'fruit',
+        stock: 65
+      },
+      {
+        name: 'Red Onions',
+        description: 'Sweet and crisp red onions. Essential for salads and cooking.',
+        price: 1.49,
+        image: 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1',
+        category: 'vegetable',
+        stock: 150
       }
     ];
     

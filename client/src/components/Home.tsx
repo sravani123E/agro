@@ -19,6 +19,9 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Alert,
+  Pagination,
+  CircularProgress,
 } from '@mui/material';
 import { Search, ShoppingCart } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -40,29 +43,56 @@ const Home: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [page]);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/products?page=${page}&limit=50`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
       const data = await response.json();
-      setProducts(data);
+      setProducts(Array.isArray(data.products) ? data.products : []);
+      setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddToCart = (product: Product) => {
     if (!user) {
-      navigate('/login');
+      // Save the current product to localStorage before redirecting
+      localStorage.setItem('pendingCartItem', JSON.stringify(product));
+      navigate('/login', { state: { from: '/', redirectReason: 'addToCart' } });
       return;
     }
+    
+    // If user is logged in, show delivery form
     setSelectedProduct(product);
     setShowDeliveryForm(true);
   };
+
+  // Check for pending cart item after login
+  useEffect(() => {
+    const pendingCartItem = localStorage.getItem('pendingCartItem');
+    if (user && pendingCartItem) {
+      const product = JSON.parse(pendingCartItem);
+      setSelectedProduct(product);
+      setShowDeliveryForm(true);
+      localStorage.removeItem('pendingCartItem');
+    }
+  }, [user]);
 
   const handleDeliveryDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -83,23 +113,31 @@ const Home: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
+          customerName: deliveryDetails.name,
+          contactNumber: deliveryDetails.phone,
+          deliveryAddress: deliveryDetails.address,
+          notes: deliveryDetails.notes,
           items: [{
             productId: selectedProduct._id,
             name: selectedProduct.name,
             price: selectedProduct.price,
             quantity: 1,
           }],
-          ...deliveryDetails,
+          totalAmount: selectedProduct.price * 1, // quantity is 1
         }),
       });
 
       if (response.ok) {
         setActiveStep(1);
       } else {
-        console.error('Failed to place order');
+        const errorData = await response.json();
+        console.error('Failed to place order:', errorData);
+        throw new Error(errorData.message || 'Failed to place order');
       }
     } catch (error) {
       console.error('Error placing order:', error);
+      // Show error in the UI
+      setError(error instanceof Error ? error.message : 'Failed to place order');
     }
   };
 
@@ -195,52 +233,75 @@ const Home: React.FC = () => {
       </Paper>
 
       {/* Products Grid */}
-      <Grid container spacing={4}>
-        {filteredProducts.map((product) => (
-          <Grid item key={product._id} xs={12} sm={6} md={4} lg={3}>
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                },
-              }}
-            >
-              <CardMedia
-                component="img"
-                height="200"
-                image={product.image || '/images/placeholder.jpg'}
-                alt={product.name}
-                sx={{ objectFit: 'cover' }}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6" component="h2">
-                  {product.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  {product.description}
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
-                  <Typography variant="h6" color="primary">
-                    ${product.price}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    startIcon={<ShoppingCart />}
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    Add to Cart
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        {loading ? (
+          <Grid item xs={12} sx={{ textAlign: 'center', py: 4 }}>
+            <CircularProgress />
           </Grid>
-        ))}
+        ) : filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => (
+            <Grid item key={product._id} xs={12} sm={6} md={4} lg={3} xl={2}>
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'transform 0.2s',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                  },
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  height="180"
+                  image={product.image || '/images/placeholder.jpg'}
+                  alt={product.name}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                  <Typography gutterBottom variant="h6" component="h2" noWrap>
+                    {product.name}
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      mb: 1
+                    }}
+                  >
+                    {product.description}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+                    <Typography variant="h6" color="primary">
+                      ${product.price}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      startIcon={<ShoppingCart />}
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      Add to Cart
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          <Grid item xs={12} sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="h6" color="text.secondary">
+              No products found
+            </Typography>
+          </Grid>
+        )}
       </Grid>
 
       {/* Delivery Details Dialog */}
@@ -256,6 +317,12 @@ const Home: React.FC = () => {
             </Step>
           </Stepper>
 
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
           {activeStep === 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
@@ -265,6 +332,8 @@ const Home: React.FC = () => {
                 value={deliveryDetails.name}
                 onChange={handleDeliveryDetailsChange}
                 required
+                error={!deliveryDetails.name}
+                helperText={!deliveryDetails.name ? 'Name is required' : ''}
               />
               <TextField
                 fullWidth
@@ -273,6 +342,8 @@ const Home: React.FC = () => {
                 value={deliveryDetails.address}
                 onChange={handleDeliveryDetailsChange}
                 required
+                error={!deliveryDetails.address}
+                helperText={!deliveryDetails.address ? 'Address is required' : ''}
               />
               <TextField
                 fullWidth
@@ -281,6 +352,8 @@ const Home: React.FC = () => {
                 value={deliveryDetails.phone}
                 onChange={handleDeliveryDetailsChange}
                 required
+                error={!deliveryDetails.phone}
+                helperText={!deliveryDetails.phone ? 'Phone number is required' : ''}
               />
               <TextField
                 fullWidth
