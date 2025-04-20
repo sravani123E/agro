@@ -28,25 +28,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Set the provided token
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODA0ODIwMmY2MTYzNWM1ODdiZTQ2ODAiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzQ1MTI1ODkwLCJleHAiOjE3NDUyMTIyOTB9.YzVnSBCtQkLzfaECc2ud-0SQzq1ZqleDbYLthf_oqkU';
-    localStorage.setItem('token', token);
-    
     // Verify token and get user info
-    fetch('http://localhost:5000/api/auth/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.user) {
-          setUser(data.user);
-        }
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('http://localhost:5000/api/auth/me', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-      .catch(() => {
-        localStorage.removeItem('token');
-      });
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.user) {
+            setUser(data.user);
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+        });
+    }
   }, []);
 
   const login = async (email: string, password: string) => {
